@@ -37,7 +37,15 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Sign Up**: Secure user registration with validation.
   - **Sign In**: User login with secure cookie setting.
   - **Profile Management**: Extensible user profile structure.
+  - **Session Persistence**: `/user/me` endpoint to hydrate frontend state on reload.
+  - **Secure Logout**: `/user/logout` to clear HttpOnly cookies.
 - **Health Checks**: `/test` endpoint for uptime monitoring.
+- **Expense Management**:
+  - **Add Expense**: `/user/add-expense` endpoint to securely add user expenses.
+  - **Get Expenses**: `/user/my-expenses` to retrieve all expenses for the authenticated user (date sorted).
+  - **Delete Expense**: `/user/delete-expense/:id` with ownership verification before deletion.
+  - **Data Validation**: Strict Zod validation for expense amounts, dates, and categories.
+  - **Secure User Association**: Expenses are automatically linked to authenticated users.
 
 ---
 *This file is automatically updated to reflect the latest features and accomplishments of the Monetra Backend project.*

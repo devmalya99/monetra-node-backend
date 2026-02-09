@@ -9,8 +9,12 @@ if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is missing");
 }
 
+// Remove ssl-mode from URL to avoid mysql2 warning as it's not a valid option key
+const dbUrl = process.env.DATABASE_URL;
+console.log(dbUrl);
+
 const connection = mysql.createPool({
-    uri: process.env.DATABASE_URL,
+    uri: dbUrl,
     ssl: {
         rejectUnauthorized: false,
     }

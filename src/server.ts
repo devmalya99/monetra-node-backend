@@ -7,7 +7,7 @@ import { logger } from "./utils/logger";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 9100;
 
 const server = createServer(app);
 

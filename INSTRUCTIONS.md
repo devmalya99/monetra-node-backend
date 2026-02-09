@@ -24,7 +24,7 @@ Create a `.env` file in the root directory by copying the example below:
 ```env
 DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DATABASE?ssl-mode=REQUIRED"
 JWT_SECRET="your-super-strong-secret-key"
-PORT=3000
+PORT=9100
 NODE_ENV="development"
 ```
 > **Note**: Replace the placeholders with your actual database credentials.
@@ -62,7 +62,7 @@ Start the server with `tsx watch` for instant feedback on code changes:
 npm run dev
 ```
 > **Output**: Look for the beautiful startup banner in your terminal!
-> Access API Docs: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+> Access API Docs: [http://localhost:9100/api-docs](http://localhost:9100/api-docs)
 
 ### 3.2 Production Build
 Compile TypeScript to JavaScript for optimal performance:
@@ -70,6 +70,18 @@ Compile TypeScript to JavaScript for optimal performance:
 npm run build
 npm start
 ```
+
+
+
+### 3.3 Testing Features (Auth & Expenses)
+1.  **Signup**: `POST /user/signup` with email/password.
+2.  **Signin**: `POST /user/signin` with credentials.
+3.  **Add Expense**: `POST /user/add-expense` with Bearer token (or cookie).
+    - Body: `{ amount: 100, date: "2024-01-01T00:00:00Z", category: "Food", title: "Lunch", userId: "..." }`
+4.  **Get Expenses**: `GET /user/my-expenses` with Bearer token.
+5.  **Check Session**: `GET /user/me` - returns logged-in user details.
+6.  **Logout**: `POST /user/logout` - clears the auth cookie.
+7.  **Delete Expense**: `DELETE /user/delete-expense/:id` with Bearer token.
 
 ---
 
@@ -100,7 +112,7 @@ npm start
    - If using Aiven, ensure SSL mode is required/configured correctly.
 
 3. **Port In Use (EADDRINUSE)**:
-   - The server is already running. Kill the process on port 3000 or change `PORT` in `.env`.
+   - The server is already running. Kill the process on port 9100 or change `PORT` in `.env`.
 
 ---
 

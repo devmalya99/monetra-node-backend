@@ -8,7 +8,7 @@ Welcome to the **Monetra Backend**, a robust and strictly typed Node.js applicat
 
 - **[📖 Step-by-Step Instructions](./INSTRUCTIONS.md)**: Detailed setup and development workflow.
 - **[🏆 Project Accomplishments](./ACCOMPLISHMENTS.md)**: Key features and technical highlights.
-- **[🔥 API Documentation](http://localhost:3000/api-docs)**: Interactive Swagger UI.
+- **[🔥 API Documentation](http://localhost:9100/api-docs)**: Interactive Swagger UI.
 
 Backend service for the Monetra Expense Tracker application, built with Node.js, Express, and MySQL (via Drizzle ORM).
 
@@ -63,7 +63,7 @@ src/
     ```env
     DATABASE_URL="mysql://<user>:<password>@<host>:<port>/<database>?ssl-mode=REQUIRED"
     JWT_SECRET="your-secret-key"
-    PORT=3000
+    PORT=9100
     NODE_ENV="development"
     ```
 
@@ -91,7 +91,7 @@ src/
 
 The API documentation is auto-generated using `zod-to-openapi` directly from the validation schemas and route definitions.
 
-- Access the docs at: `http://localhost:3000/api-docs`
+- Access the docs at: `http://localhost:9100/api-docs`
 
 ## API Endpoints
 
@@ -99,6 +99,11 @@ The API documentation is auto-generated using `zod-to-openapi` directly from the
 
 - `POST /user/signup`: Create a new user account.
 - `POST /user/signin`: Log in an existing user.
+- `GET /user/me`: Get current user details (session check).
+- `POST /user/logout`: Log out user and clear cookies.
+- `POST /user/add-expense`: Create a new expense record (requires auth).
+- `GET /user/my-expenses`: Get all expenses for the authenticated user.
+- `DELETE /user/delete-expense/:id`: Delete a specific expense by ID (requires auth).
 - `GET /user/test`: verification endpoint
 
 ### General

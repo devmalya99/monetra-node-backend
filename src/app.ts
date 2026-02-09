@@ -13,7 +13,10 @@ const app = express();
 
 // 1) Global Middlewares
 app.use(helmet()); // Set security HTTP headers
-app.use(cors()); // Enable CORS
+app.use(cors({
+    origin: ["http://localhost:3000"],
+    credentials: true,
+})); // Enable CORS
 
 if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev")); // Logging

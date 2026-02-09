@@ -32,7 +32,6 @@ const createSendToken = (user: any, statusCode: number, res: Response) => {
 
     res.status(statusCode).json({
         status: "success",
-        token,
         data: {
             user,
         },
@@ -108,3 +107,25 @@ export const signin = catchAsync(async (req: Request, res: Response, next: NextF
     logger.success(`User ${email} signed in successfully`);
     createSendToken(user, 200, res);
 });
+
+export const getMe = (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+
+    // We already have the user because of the protect middleware
+    res.status(200).json({
+        status: "success",
+        data: {
+            user,
+        },
+    });
+};
+
+export const logout = (req: Request, res: Response) => {
+    res.cookie("jwt", "loggedout", {
+        expires: new Date(0), // Expire immediately (epoch time)
+        httpOnly: true,
+    });
+    res.status(200).json({ status: "success" });
+};
+
+

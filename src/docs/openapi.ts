@@ -20,7 +20,7 @@ export function generateOpenAPI() {
         },
         servers: [
             {
-                url: 'http://localhost:3000',
+                url: 'http://localhost:9100',
                 description: 'Development server',
             },
         ],
