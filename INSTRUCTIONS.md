@@ -77,7 +77,7 @@ npm start
 1.  **Signup**: `POST /user/signup` with email/password.
 2.  **Signin**: `POST /user/signin` with credentials.
 3.  **Add Expense**: `POST /user/add-expense` with Bearer token (or cookie).
-    - Body: `{ amount: 100, date: "2024-01-01T00:00:00Z", category: "Food", title: "Lunch", userId: "..." }`
+    - Body: `{ amount: 100, date: "2024-01-01T00:00:00Z", category: "Food", title: "Lunch" }`
 4.  **Get Expenses**: `GET /user/my-expenses` with Bearer token.
 5.  **Check Session**: `GET /user/me` - returns logged-in user details.
 6.  **Logout**: `POST /user/logout` - clears the auth cookie.

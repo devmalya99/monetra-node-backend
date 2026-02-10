@@ -15,6 +15,7 @@ export const addExpense = catchAsync(async (req: Request, res: Response, next: N
 
     const { amount, date, category, title } = validation.data;
     const userId = (req as any).user.id;
+    logger.info(`💸 Adding new expense for user: ${userId}`);
 
     // 2. Call service use any to bypass strict type check between zod number and drizzle decimal string requirement if exists
     // The service expects insert model where amount can be number or string usually.
