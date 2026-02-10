@@ -1,9 +1,11 @@
 import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 import { registry } from './openAPIRegistry';
 import { registerAuthPaths } from './paths/auth';
+import { registerExpensePaths } from './paths/expenses';
 
 // Register paths
 registerAuthPaths();
+registerExpensePaths();
 
 export function generateOpenAPI() {
     const generator = new OpenApiGeneratorV3(registry.definitions);

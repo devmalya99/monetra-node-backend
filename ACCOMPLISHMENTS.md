@@ -27,7 +27,7 @@ This document outlines the key technical achievements, architectural decisions, 
 - **CORS & Helmet**: Security headers and Cross-Origin Resource Sharing configuration to protect the API.
 
 ## 🛠️ Developer Experience (DX)
-- **Automated API Documentation**: Switched from manual JSDoc to `zod-to-openapi` for automated, Type-Safe Swagger UI generation.
+- **Automated API Documentation**: Switched from manual JSDoc to `zod-to-openapi` for automated, Type-Safe Swagger UI generation covering Key Auth & Expense flows.
 - **Structured Logging**: Custom logger with colorful output for better debuggability and monitoring.
 - **Hot Reloading**: `tsx watch` for instant feedback during development.
 - **Clean Code Practices**: usage of `prettier` and `eslint` (implied) for consistent code style.
