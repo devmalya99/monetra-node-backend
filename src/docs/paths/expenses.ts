@@ -32,7 +32,7 @@ export const registerExpensePaths = () => {
                                 date: z.iso.datetime().openapi({ example: "2024-05-20T10:00:00Z" }),
                                 category: z.string().openapi({ example: "Food" }),
                                 title: z.string().openapi({ example: "Lunch" }),
-                                userId: z.string().uuid(),
+                                userId: z.uuid(),
                             }),
                         }),
                     },
