@@ -6,6 +6,7 @@ import app from "./app";
 import { logger } from "./utils/logger";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
+import { seedPremiumMemberships } from "./db/seeder";
 
 const PORT = process.env.PORT || 9100;
 
@@ -27,6 +28,9 @@ async function startServer() {
         // So we try a simple query
         await db.execute(sql`SELECT 1`);
         logger.success("Database connection successful!");
+
+        // Seed data
+        await seedPremiumMemberships();
 
         server.listen(PORT, () => {
             console.log(`

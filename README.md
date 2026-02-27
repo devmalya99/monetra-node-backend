@@ -110,6 +110,11 @@ The API documentation is auto-generated using `zod-to-openapi` directly from the
 - `GET /user/search-expenses`: Search expenses by name/title or category.
 - `GET /user/test`: verification endpoint
 
+### Premium Membership
+
+- `GET /premium/memberships`: Get a list of all available premium tier memberships.
+- `POST /premium/verify-order`: Verify an incoming membership order request and resolve it internally.
+
 ### General
 
 - `GET /test`: Health check endpoint.

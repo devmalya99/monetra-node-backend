@@ -32,3 +32,7 @@ export const updateBalanceSchema = z.object({
 export const searchExpenseSchema = z.object({
     query: z.string().min(1).openapi({ example: "Lunch" }),
 }).openapi("SearchExpense");
+
+export const verifyPremiumOrderSchema = z.object({
+    id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
+}).openapi("VerifyPremiumOrder");

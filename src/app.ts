@@ -14,7 +14,7 @@ const app = express();
 // 1) Global Middlewares
 app.use(helmet()); // Set security HTTP headers
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: true,
     credentials: true,
 })); // Enable CORS
 

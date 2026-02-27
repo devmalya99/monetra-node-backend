@@ -89,6 +89,9 @@ npm start
     - Optional Query: `?limit=3`
 11. **Search Expenses**: `GET /user/search-expenses` with Bearer token.
     - Required Query: `?query=lunch`
+12. **Get Premium Memberships**: `GET /premium/memberships` with Bearer token. Returns available memberships (pro/ultra/max).
+13. **Verify Premium Order**: `POST /premium/verify-order` with Bearer token.
+    - Body: `{ id: "some-uuid" }`
 
 ---
 

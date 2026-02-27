@@ -26,3 +26,12 @@ export const balances = mysqlTable("balances", {
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
     lastUpdated: timestamp("last_updated").defaultNow().onUpdateNow(),
 });
+
+export const premiumMembershipData = mysqlTable("premium_membership_data", {
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tier: varchar("tier", { length: 50 }).notNull(), // pro / ultra / max
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(), // 499 / 1499 / 1999
+    tenure: varchar("tenure", { length: 50 }).notNull().default("year"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
+});
