@@ -102,8 +102,12 @@ The API documentation is auto-generated using `zod-to-openapi` directly from the
 - `GET /user/me`: Get current user details (session check).
 - `POST /user/logout`: Log out user and clear cookies.
 - `POST /user/add-expense`: Create a new expense record (requires auth).
-- `GET /user/my-expenses`: Get all expenses for the authenticated user.
+- `GET /user/my-expenses`: Get all expenses for the authenticated user, plus total, allocated, and remaining balance.
 - `DELETE /user/delete-expense/:id`: Delete a specific expense by ID (requires auth).
+- `POST /user/update-balance`: Update or set the monthly allocated balance.
+- `GET /user/monthly-balance`: Get the monthly allocated balance for the authenticated user.
+- `GET /user/top-categories`: Get the top spending categories for the authenticated user.
+- `GET /user/search-expenses`: Search expenses by name/title or category.
 - `GET /user/test`: verification endpoint
 
 ### General

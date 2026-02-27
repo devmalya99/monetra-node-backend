@@ -42,9 +42,13 @@ This document outlines the key technical achievements, architectural decisions, 
 - **Health Checks**: `/test` endpoint for uptime monitoring.
 - **Expense Management**:
   - **Add Expense**: `/user/add-expense` endpoint to securely add user expenses.
-  - **Get Expenses**: `/user/my-expenses` to retrieve all expenses for the authenticated user (date sorted).
+  - **Update Balance**: `/user/update-balance` to set or update the monthly allocated balance.
+  - **Get Monthly Balance**: `/user/monthly-balance` to retrieve just the current monthly allocated balance.
+  - **Get Top Categories**: `/user/top-categories` to fetch top spending categories grouped dynamically with database aggregations.
+  - **Search Expenses**: `/user/search-expenses` to search expenses flexibly by name, title, or category.
+  - **Get Expenses**: `/user/my-expenses` to retrieve all expenses for the authenticated user (date sorted) along with a calculated total expense, allocated balance, and remaining balance.
   - **Delete Expense**: `/user/delete-expense/:id` with ownership verification before deletion.
-  - **Data Validation**: Strict Zod validation for expense amounts, dates, and categories.
+  - **Data Validation**: Strict Zod validation for expense amounts, balances, dates, and categories.
   - **Secure User Association**: Expenses are automatically linked to authenticated users.
 
 ---

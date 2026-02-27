@@ -78,10 +78,17 @@ npm start
 2.  **Signin**: `POST /user/signin` with credentials.
 3.  **Add Expense**: `POST /user/add-expense` with Bearer token (or cookie).
     - Body: `{ amount: 100, date: "2024-01-01T00:00:00Z", category: "Food", title: "Lunch" }`
-4.  **Get Expenses**: `GET /user/my-expenses` with Bearer token.
+4.  **Get Expenses**: `GET /user/my-expenses` with Bearer token - returns list of expenses, total amount, allocated balance, and remaining balance.
 5.  **Check Session**: `GET /user/me` - returns logged-in user details.
 6.  **Logout**: `POST /user/logout` - clears the auth cookie.
 7.  **Delete Expense**: `DELETE /user/delete-expense/:id` with Bearer token.
+8.  **Update Balance**: `POST /user/update-balance` with Bearer token.
+    - Body: `{ amount: 5000 }`
+9.  **Get Monthly Balance**: `GET /user/monthly-balance` with Bearer token.
+10. **Get Top Categories**: `GET /user/top-categories` with Bearer token.
+    - Optional Query: `?limit=3`
+11. **Search Expenses**: `GET /user/search-expenses` with Bearer token.
+    - Required Query: `?query=lunch`
 
 ---
 

@@ -11,7 +11,6 @@ if (!process.env.DATABASE_URL) {
 
 // Remove ssl-mode from URL to avoid mysql2 warning as it's not a valid option key
 const dbUrl = process.env.DATABASE_URL;
-console.log(dbUrl);
 
 const connection = mysql.createPool({
     uri: dbUrl,

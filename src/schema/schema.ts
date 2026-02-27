@@ -19,3 +19,10 @@ export const expenses = mysqlTable("expenses", {
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
+
+export const balances = mysqlTable("balances", {
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    userId: varchar("user_id", { length: 36 }).notNull().unique(),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    lastUpdated: timestamp("last_updated").defaultNow().onUpdateNow(),
+});

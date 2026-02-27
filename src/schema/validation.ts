@@ -25,3 +25,10 @@ export const deleteExpenseSchema = z.object({
     id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
 }).openapi("DeleteExpense");
 
+export const updateBalanceSchema = z.object({
+    amount: z.coerce.number().min(0).openapi({ example: 5000.00 }),
+}).openapi("UpdateBalance");
+
+export const searchExpenseSchema = z.object({
+    query: z.string().min(1).openapi({ example: "Lunch" }),
+}).openapi("SearchExpense");
