@@ -2,9 +2,22 @@ import { mysqlTable, varchar, timestamp, decimal, boolean, json } from "drizzle-
 import { randomUUID } from "node:crypto";
 
 export const users = mysqlTable("users", {
-    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    id: varchar("user_id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    fullName: varchar("full_name", { length: 255 }),
     email: varchar("email", { length: 255 }).notNull().unique(),
-    password: varchar("password", { length: 255 }).notNull(),
+    phoneNumber: varchar("phone_number", { length: 20 }),
+    password: varchar("password_hash", { length: 255 }).notNull(),
+    isVerified: boolean("is_verified").default(false),
+    mfaEnabled: boolean("mfa_enabled").default(false),
+    lastLoginAt: timestamp("last_login_at"),
+    role: varchar("role", { length: 50 }).default("user"),
+    city: varchar("city", { length: 100 }),
+    countryCode: varchar("country_code", { length: 10 }),
+    currencyCode: varchar("currency_code", { length: 10 }).default("INR"),
+    timezone: varchar("timezone", { length: 50 }),
+    profileImgUrl: varchar("profile_img_url", { length: 500 }),
+    bio: varchar("bio", { length: 1000 }),
+    status: varchar("status", { length: 50 }).default("active"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
