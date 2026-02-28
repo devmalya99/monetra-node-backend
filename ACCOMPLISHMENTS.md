@@ -57,3 +57,8 @@ This document outlines the key technical achievements, architectural decisions, 
 
 ---
 *This file is automatically updated to reflect the latest features and accomplishments of the Monetra Backend project.*
+
+- **Advanced Production-Grade Payment Gateway (Razorpay)**: Architected a robust, end-to-end payment ecosystem bypassing legacy implementations.
+  - **Cryptographic Verification Check**: Developed secure backend endpoints that natively utilize `crypto.createHmac()` validating Razorpay signatures to ensure absolute payment authenticity from client requests.
+  - **Automated Webhook Infrastructure**: Deployed a public, signature-verified webhook listener targeting `payment.captured` events, bridging the gap for asynchronous payment propagation devoid of active session requirements.
+  - **Transaction State Management**: Designed a resilient dual-table system using `orders` and `premium_membership_data`. Orders initialize safely as `pending` before generating gateway tokens and shift to `succeeded` explicitly through verified callbacks, guaranteeing zero discrepancies and eliminating payment race conditions.

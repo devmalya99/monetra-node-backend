@@ -118,3 +118,5 @@ The API documentation is auto-generated using `zod-to-openapi` directly from the
 ### General
 
 - `GET /test`: Health check endpoint.
+## Cashfree Integration
+Added Cashfree API integration to create order sessions under `/premium/verify-order` and Webhook verification at `/premium/webhook`.

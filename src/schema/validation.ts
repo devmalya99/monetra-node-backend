@@ -34,5 +34,5 @@ export const searchExpenseSchema = z.object({
 }).openapi("SearchExpense");
 
 export const verifyPremiumOrderSchema = z.object({
-    id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
+    membership_id: z.string().openapi({ example: "pro_plan" }),
 }).openapi("VerifyPremiumOrder");

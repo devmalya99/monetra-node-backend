@@ -64,7 +64,9 @@ export function registerPremiumPaths() {
                                     tenure: z.string(),
                                     createdAt: z.string(),
                                     updatedAt: z.string(),
-                                })
+                                }),
+                                order_id: z.string().openapi({ example: "order_123456" }),
+                                payment_session_id: z.string().openapi({ example: "session_xxx" })
                             })
                         })
                     }
@@ -72,6 +74,38 @@ export function registerPremiumPaths() {
             },
             400: { description: 'Bad Request' },
             404: { description: 'Membership Not Found' }
+        }
+    });
+
+    registry.registerPath({
+        method: 'get',
+        path: '/premium/leaderboard',
+        tags: ['Premium'],
+        summary: 'Get top 10 total spenders and current user rank',
+        security: [{ bearerAuth: [] }],
+        responses: {
+            200: {
+                description: 'Leaderboard retrieved successfully',
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            status: z.string().openapi({ example: "success" }),
+                            data: z.object({
+                                top10: z.array(z.object({
+                                    rank: z.number().openapi({ example: 1 }),
+                                    email: z.string().openapi({ example: "user@example.com" }),
+                                    totalSpent: z.number().openapi({ example: 45000.50 })
+                                })),
+                                currentUser: z.object({
+                                    rank: z.number().nullable().openapi({ example: 42 }),
+                                    totalSpent: z.number().openapi({ example: 1200.00 })
+                                })
+                            })
+                        })
+                    }
+                }
+            },
+            401: { description: 'Unauthorized' }
         }
     });
 }
