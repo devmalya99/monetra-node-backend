@@ -36,3 +36,10 @@ export const searchExpenseSchema = z.object({
 export const verifyPremiumOrderSchema = z.object({
     membership_id: z.string().openapi({ example: "pro_plan" }),
 }).openapi("VerifyPremiumOrder");
+
+export const verifyPaymentSchema = z.object({
+    razorpay_order_id: z.string().openapi({ example: "order_123456" }),
+    razorpay_payment_id: z.string().openapi({ example: "pay_123456" }),
+    razorpay_signature: z.string().openapi({ example: "abc123xyz" }),
+    membership_id: z.string().openapi({ example: "pro_plan" }),
+}).openapi("VerifyPayment");

@@ -258,3 +258,22 @@ export const getLeaderboard = catchAsync(async (req: Request, res: Response) => 
         }
     });
 });
+
+export const getUserData = catchAsync(async (req: Request, res: Response) => {
+    const user = (req as any).user;
+
+    // Remove password hash from response
+    user.password = undefined;
+
+    const [membership] = await db.select()
+        .from(premiumMembershipData)
+        .where(eq(premiumMembershipData.userId, user.id));
+
+    res.status(200).json({
+        status: "success",
+        data: {
+            user,
+            membership: membership || null
+        }
+    });
+});
