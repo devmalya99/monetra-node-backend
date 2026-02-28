@@ -50,6 +50,15 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Delete Expense**: `/user/delete-expense/:id` with ownership verification before deletion.
   - **Data Validation**: Strict Zod validation for expense amounts, balances, dates, and categories.
   - **Secure User Association**: Expenses are automatically linked to authenticated users.
+- **Premium Memberships**:
+  - **Auto-Seeding**: Automatically seeds premium membership data (Tiers: Pro, Ultra, Max) on server load.
+  - **Dynamic Tier Verification**: Securely verifies incoming frontend requests matching database membership IDs for orders.
+  - **Data Resilience**: Implemented safety checks to prevent duplicate data seeding while making sure database constraints are maintained at all times.
 
 ---
 *This file is automatically updated to reflect the latest features and accomplishments of the Monetra Backend project.*
+
+- **Advanced Production-Grade Payment Gateway (Razorpay)**: Architected a robust, end-to-end payment ecosystem bypassing legacy implementations.
+  - **Cryptographic Verification Check**: Developed secure backend endpoints that natively utilize `crypto.createHmac()` validating Razorpay signatures to ensure absolute payment authenticity from client requests.
+  - **Automated Webhook Infrastructure**: Deployed a public, signature-verified webhook listener targeting `payment.captured` events, bridging the gap for asynchronous payment propagation devoid of active session requirements.
+  - **Transaction State Management**: Designed a resilient dual-table system using `orders` and `premium_membership_data`. Orders initialize safely as `pending` before generating gateway tokens and shift to `succeeded` explicitly through verified callbacks, guaranteeing zero discrepancies and eliminating payment race conditions.

@@ -89,6 +89,9 @@ npm start
     - Optional Query: `?limit=3`
 11. **Search Expenses**: `GET /user/search-expenses` with Bearer token.
     - Required Query: `?query=lunch`
+12. **Get Premium Memberships**: `GET /premium/memberships` with Bearer token. Returns available memberships (pro/ultra/max).
+13. **Verify Premium Order**: `POST /premium/verify-order` with Bearer token.
+    - Body: `{ id: "some-uuid" }`
 
 ---
 
@@ -133,3 +136,9 @@ npm start
 - [ ] **Commit**: Push changes with meaningful commit messages.
 
 *Happy Coding! 🚀*
+Cashfree Integration Added: `cashfree-pg` singleton initialized. `/premium/verify-order` maps user membership to Cashfree Order generating payment_session_id. Webhook added to handle signature.
+### Step 6.7: Subscription System & Order Tracking
+  - [x] Transformed `premium_membership_data` schema into a "User Subscriptions" table featuring cycle tracking, `user_id` linkage, and renewal options.
+  - [x] Created an `orders` table capturing payment transaction history linked to membership plans and user identity.
+  - [x] Statically defined `MEMBERSHIP_PLANS` constants natively on the backend for clean separation of master data vs active user bindings.
+  - [x] Configured `PGCreateOrder` callback to successfully construct and insert an empty "pending" row into `orders` initialized by the `payment_session_id`.

@@ -13,16 +13,22 @@ const app = express();
 
 // 1) Global Middlewares
 app.use(helmet()); // Set security HTTP headers
+
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: true, // Dynamically mirror the request origin to bypass strict matching issues
     credentials: true,
-})); // Enable CORS
+}));
 
-if (process.env.NODE_ENV === "development") {
-    app.use(morgan("dev")); // Logging
-}
+// if (process.env.NODE_ENV === "development") {
+//     app.use(morgan("dev")); // Logging
+// }
 
-app.use(express.json({ limit: "10kb" })); // Body parser
+app.use(express.json({
+    limit: "10kb",
+    verify: (req: any, res, buf) => {
+        req.rawBody = buf.toString();
+    }
+})); // Body parser
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
@@ -34,7 +40,7 @@ app.use("/", routes);
 
 // 4) Unhandled Routes
 app.all(/(.*)/, (req, res, next) => {
-    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+    next(new AppError(`Can't find ${req.method} ${req.originalUrl} on this server!`, 404));
 });
 
 // 5) Global Error Handler
