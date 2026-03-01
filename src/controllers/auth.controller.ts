@@ -66,10 +66,12 @@ export const signup = catchAsync(async (req: Request, res: Response, next: NextF
         // Generate UUID explicitly so we can return it immediately
         const userId = randomUUID();
 
-        await db.insert(users).values({
-            id: userId,
-            email,
-            password: hashedPassword,
+        await db.transaction(async (t) => {
+            await t.insert(users).values({
+                id: userId,
+                email,
+                password: hashedPassword,
+            });
         });
 
         const newUser = {

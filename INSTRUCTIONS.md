@@ -81,7 +81,7 @@ npm start
 4.  **Get Expenses**: `GET /user/my-expenses` with Bearer token - returns list of expenses, total amount, allocated balance, and remaining balance.
 5.  **Check Session**: `GET /user/me` - returns logged-in user details.
 6.  **Logout**: `POST /user/logout` - clears the auth cookie.
-7.  **Delete Expense**: `DELETE /user/delete-expense/:id` with Bearer token.
+7.  **Delete Expense**: `DELETE /user/delete-expense/:id` with Bearer token (now strictly utilizes database *transactions* for data consistency).
 8.  **Update Balance**: `POST /user/update-balance` with Bearer token.
     - Body: `{ amount: 5000 }`
 9.  **Get Monthly Balance**: `GET /user/monthly-balance` with Bearer token.

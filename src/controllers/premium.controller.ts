@@ -46,15 +46,17 @@ export const verifyPremiumOrder = catchAsync(async (req: Request, res: Response)
     console.log("order data from razorpay", order);
 
     // Track the intended order inside the database BEFORE responding to frontend
-    await db.insert(orders).values({
-        id: internal_order_id,
-        userId: user.id,
-        membershipId: membership_id,
-        paymentSessionId: order.id,
-        amount: plan.price.toString(),
-        currency: "INR",
-        status: "pending",
-        metadata: order
+    await db.transaction(async (t) => {
+        await t.insert(orders).values({
+            id: internal_order_id,
+            userId: user.id,
+            membershipId: membership_id,
+            paymentSessionId: order.id,
+            amount: plan.price.toString(),
+            currency: "INR",
+            status: "pending",
+            metadata: order
+        });
     });
 
     res.status(200).json({
@@ -85,48 +87,49 @@ export const handleRazorpayWebhook = catchAsync(async (req: Request, res: Respon
     if (event === 'payment.captured') {
         const payment = req.body.payload.payment.entity;
 
-        // Fetch the user's purchased plan from the metadata attached during order creation
-        const [plan] = await db.select().from(membershipPlans).where(eq(membershipPlans.id, payment.notes.membership_id));
+        await db.transaction(async (t) => {
+            const [plan] = await t.select().from(membershipPlans).where(eq(membershipPlans.id, payment.notes.membership_id));
 
-        if (plan) {
-            const currentPeriodStart = new Date();
-            const currentPeriodEnd = new Date();
-            if (plan.tenure === 'monthly') currentPeriodEnd.setMonth(currentPeriodStart.getMonth() + 1);
-            else currentPeriodEnd.setFullYear(currentPeriodStart.getFullYear() + 1); // Default to year
+            if (plan) {
+                const currentPeriodStart = new Date();
+                const currentPeriodEnd = new Date();
+                if (plan.tenure === 'monthly') currentPeriodEnd.setMonth(currentPeriodStart.getMonth() + 1);
+                else currentPeriodEnd.setFullYear(currentPeriodStart.getFullYear() + 1); // Default to year
 
-            const [existing] = await db.select().from(premiumMembershipData).where(eq(premiumMembershipData.userId, payment.notes.customer_id));
+                const [existing] = await t.select().from(premiumMembershipData).where(eq(premiumMembershipData.userId, payment.notes.customer_id));
 
-            if (existing) {
-                // Update the existing subscription
-                await db.update(premiumMembershipData)
-                    .set({
+                if (existing) {
+                    // Update the existing subscription
+                    await t.update(premiumMembershipData)
+                        .set({
+                            tier: plan.tier,
+                            status: 'active',
+                            currentPeriodStart,
+                            currentPeriodEnd
+                        })
+                        .where(eq(premiumMembershipData.id, existing.id));
+                } else {
+                    // Create a new subscription entry
+                    await t.insert(premiumMembershipData).values({
+                        userId: payment.notes.customer_id,
                         tier: plan.tier,
                         status: 'active',
                         currentPeriodStart,
-                        currentPeriodEnd
-                    })
-                    .where(eq(premiumMembershipData.id, existing.id));
-            } else {
-                // Create a new subscription entry
-                await db.insert(premiumMembershipData).values({
-                    userId: payment.notes.customer_id,
-                    tier: plan.tier,
-                    status: 'active',
-                    currentPeriodStart,
-                    currentPeriodEnd,
-                    autoRenew: true
-                });
-            }
+                        currentPeriodEnd,
+                        autoRenew: true
+                    });
+                }
 
-            // Mark the exact order inside MySQL as successful using the ID passed via notes explicitly!
-            if (payment.notes.order_id) {
-                await db.update(orders)
-                    .set({ status: 'succeeded' })
-                    .where(eq(orders.id, payment.notes.order_id));
-            }
+                // Mark the exact order inside MySQL as successful using the ID passed via notes explicitly!
+                if (payment.notes.order_id) {
+                    await t.update(orders)
+                        .set({ status: 'succeeded' })
+                        .where(eq(orders.id, payment.notes.order_id));
+                }
 
-            console.log("✅ Webhook processed: Membership upgraded for", payment.notes.customer_email);
-        }
+                console.log("✅ Webhook processed: Membership upgraded for", payment.notes.customer_email);
+            }
+        });
     }
 
     res.status(200).json({ status: "success" });
@@ -162,47 +165,50 @@ export const verifyPayment = catchAsync(async (req: Request, res: Response) => {
     if (generated_signature === razorpay_signature) {
         // Success: Transaction is verified
 
-        // 1. Fetch Membership Plan
-        const [plan] = await db.select().from(membershipPlans).where(eq(membershipPlans.id, membership_id));
-        if (!plan) {
-            return res.status(400).json({ status: "failure", message: "Membership plan not found" });
-        }
+        await db.transaction(async (t) => {
+            // 1. Fetch Membership Plan
+            const [plan] = await t.select().from(membershipPlans).where(eq(membershipPlans.id, membership_id));
+            if (!plan) {
+                // Throw AppError so Drizzle rolls back correctly and the outer catchAsync returns the error appropriately
+                throw new AppError("Membership plan not found", 400);
+            }
 
-        // 2. Set expiry
-        const currentPeriodStart = new Date();
-        const currentPeriodEnd = new Date();
-        if (plan.tenure === 'monthly') currentPeriodEnd.setMonth(currentPeriodStart.getMonth() + 1);
-        else currentPeriodEnd.setFullYear(currentPeriodStart.getFullYear() + 1); // Default to year
+            // 2. Set expiry
+            const currentPeriodStart = new Date();
+            const currentPeriodEnd = new Date();
+            if (plan.tenure === 'monthly') currentPeriodEnd.setMonth(currentPeriodStart.getMonth() + 1);
+            else currentPeriodEnd.setFullYear(currentPeriodStart.getFullYear() + 1); // Default to year
 
-        // 3. Upsert into `premium_membership_data`
-        const [existing] = await db.select().from(premiumMembershipData).where(eq(premiumMembershipData.userId, user.id));
+            // 3. Upsert into `premium_membership_data`
+            const [existing] = await t.select().from(premiumMembershipData).where(eq(premiumMembershipData.userId, user.id));
 
-        if (existing) {
-            // Update the existing subscription to active
-            await db.update(premiumMembershipData)
-                .set({
+            if (existing) {
+                // Update the existing subscription to active
+                await t.update(premiumMembershipData)
+                    .set({
+                        tier: plan.tier,
+                        status: 'active',
+                        currentPeriodStart,
+                        currentPeriodEnd
+                    })
+                    .where(eq(premiumMembershipData.id, existing.id));
+            } else {
+                // Create a new subscription
+                await t.insert(premiumMembershipData).values({
+                    userId: user.id,
                     tier: plan.tier,
                     status: 'active',
                     currentPeriodStart,
-                    currentPeriodEnd
-                })
-                .where(eq(premiumMembershipData.id, existing.id));
-        } else {
-            // Create a new subscription
-            await db.insert(premiumMembershipData).values({
-                userId: user.id,
-                tier: plan.tier,
-                status: 'active',
-                currentPeriodStart,
-                currentPeriodEnd,
-                autoRenew: true
-            });
-        }
+                    currentPeriodEnd,
+                    autoRenew: true
+                });
+            }
 
-        // 4. Update order status to succeeded
-        await db.update(orders)
-            .set({ status: 'succeeded' })
-            .where(eq(orders.paymentSessionId, razorpay_order_id));
+            // 4. Update order status to succeeded
+            await t.update(orders)
+                .set({ status: 'succeeded' })
+                .where(eq(orders.paymentSessionId, razorpay_order_id));
+        });
 
         res.status(200).json({ status: "success", message: "Payment verified & membership upgraded successfully" });
     } else {

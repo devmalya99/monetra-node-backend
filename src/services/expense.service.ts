@@ -8,14 +8,16 @@ type NewExpense = typeof expenses.$inferInsert;
 
 export const addExpenseService = async (data: NewExpense) => {
     try {
-        await db.insert(expenses).values(data);
+        await db.transaction(async (t) => {
+            await t.insert(expenses).values(data);
 
-        // Update user's totalExpense
-        if (data.userId && data.amount) {
-            await db.update(users)
-                .set({ totalExpense: sql`${users.totalExpense} + ${data.amount}` })
-                .where(eq(users.id, data.userId));
-        }
+            // Update user's totalExpense
+            if (data.userId && data.amount) {
+                await t.update(users)
+                    .set({ totalExpense: sql`${users.totalExpense} + ${data.amount}` })
+                    .where(eq(users.id, data.userId));
+            }
+        });
 
         logger.info(`Expense added for user: ${data.userId}`);
     } catch (error) {
@@ -36,21 +38,28 @@ export const getExpensesByUser = async (userId: string) => {
 
 export const deleteExpenseService = async (expenseId: string, userId: string) => {
     try {
-        // Find the expense amount so we can correctly decrement the user's totalExpense
-        const [expense] = await db.select().from(expenses).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
-        if (!expense) throw new AppError("Expense not found or unauthorized", 404);
+        await db.transaction(async (t) => {
+            // Find the expense amount so we can correctly decrement the user's totalExpense
+            const [expense] = await t.select().from(expenses).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
 
-        const deletedExpense = await db.delete(expenses).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
-        // Drizzle delete result usually has affectedRows
-        // But for safety, we return void or check if needed.
-        if (deletedExpense[0].affectedRows === 0) {
-            throw new AppError("Expense not found or unauthorized", 404);
-        }
+            if (!expense) {
+                // Note: Throwing an error in Drizzle acts as the rollback mechanism and preserves the AppError.
+                // Using t.rollback() would override the AppError with a generic Rollback error.
+                throw new AppError("Expense not found or unauthorized", 404);
+            }
 
-        // Subtract the deleted amount from the user's totalExpense
-        await db.update(users)
-            .set({ totalExpense: sql`${users.totalExpense} - ${expense.amount}` })
-            .where(eq(users.id, userId));
+            const deletedExpense = await t.delete(expenses).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
+
+            if (deletedExpense[0].affectedRows === 0) {
+                throw new AppError("Expense not found or unauthorized", 404);
+            }
+
+            // Subtract the deleted amount from the user's totalExpense
+            await t.update(users)
+                .set({ totalExpense: sql`${users.totalExpense} - ${expense.amount}` })
+                .where(eq(users.id, userId));
+            // Note: Returning normally from this callback acts as the commit mechanism (t.commit()).
+        });
 
         logger.info(`Expense deleted: ${expenseId} by user: ${userId}`);
     } catch (error) {
@@ -62,23 +71,25 @@ export const deleteExpenseService = async (expenseId: string, userId: string) =>
 
 export const updateExpenseService = async (expenseId: string, userId: string, updateData: Partial<NewExpense>) => {
     try {
-        const [existingExpense] = await db.select().from(expenses).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
-        if (!existingExpense) throw new AppError("Expense not found or unauthorized", 404);
+        await db.transaction(async (t) => {
+            const [existingExpense] = await t.select().from(expenses).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
+            if (!existingExpense) throw new AppError("Expense not found or unauthorized", 404);
 
-        await db.update(expenses).set(updateData).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
+            await t.update(expenses).set(updateData).where(and(eq(expenses.id, expenseId), eq(expenses.userId, userId)));
 
-        // Update user's totalExpense if amount changed
-        if (updateData.amount !== undefined) {
-            const oldAmount = Number(existingExpense.amount);
-            const newAmount = Number(updateData.amount);
-            const difference = newAmount - oldAmount;
+            // Update user's totalExpense if amount changed
+            if (updateData.amount !== undefined) {
+                const oldAmount = Number(existingExpense.amount);
+                const newAmount = Number(updateData.amount);
+                const difference = newAmount - oldAmount;
 
-            if (difference !== 0) {
-                await db.update(users)
-                    .set({ totalExpense: sql`${users.totalExpense} + ${difference}` })
-                    .where(eq(users.id, userId));
+                if (difference !== 0) {
+                    await t.update(users)
+                        .set({ totalExpense: sql`${users.totalExpense} + ${difference}` })
+                        .where(eq(users.id, userId));
+                }
             }
-        }
+        });
 
         logger.info(`Expense updated: ${expenseId} by user: ${userId}`);
     } catch (error) {
@@ -90,9 +101,11 @@ export const updateExpenseService = async (expenseId: string, userId: string, up
 
 export const updateBalanceService = async (userId: string, amount: number) => {
     try {
-        await db.insert(require("../schema/schema").balances)
-            .values({ userId, amount: amount.toString() })
-            .onDuplicateKeyUpdate({ set: { amount: amount.toString() } });
+        await db.transaction(async (t) => {
+            await t.insert(require("../schema/schema").balances)
+                .values({ userId, amount: amount.toString() })
+                .onDuplicateKeyUpdate({ set: { amount: amount.toString() } });
+        });
         logger.info(`Balance updated for user: ${userId}`);
     } catch (error) {
         logger.error("Error updating balance", error);
