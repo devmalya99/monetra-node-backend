@@ -225,27 +225,25 @@ export const getPremiumMemberships = catchAsync(async (req: Request, res: Respon
 export const getLeaderboard = catchAsync(async (req: Request, res: Response) => {
     const user = (req as any).user;
 
-    // Calculate total spend per user
+    // Fetch top 10 users by simply querying the directly maintained totalExpense column!
     const allSpenders = await db
         .select({
-            userId: expenses.userId,
+            userId: users.id,
             email: users.email,
-            totalSpent: sql<number>`sum(${expenses.amount})`.mapWith(Number),
+            totalSpent: users.totalExpense,
         })
-        .from(expenses)
-        .leftJoin(users, eq(expenses.userId, users.id))
-        .groupBy(expenses.userId)
-        .orderBy(desc(sql<number>`sum(${expenses.amount})`));
+        .from(users)
+        .orderBy(desc(users.totalExpense));
 
     const top10 = allSpenders.slice(0, 10).map((spender, index) => ({
         rank: index + 1,
         email: spender.email,
-        totalSpent: spender.totalSpent,
+        totalSpent: Number(spender.totalSpent) || 0,
     }));
 
     const currentUserIndex = allSpenders.findIndex(s => s.userId === user.id);
     const currentUserRank = currentUserIndex !== -1 ? currentUserIndex + 1 : null;
-    const currentUserTotal = currentUserIndex !== -1 ? allSpenders[currentUserIndex].totalSpent : 0;
+    const currentUserTotal = currentUserIndex !== -1 ? Number(allSpenders[currentUserIndex].totalSpent) || 0 : 0;
 
     res.status(200).json({
         status: "success",

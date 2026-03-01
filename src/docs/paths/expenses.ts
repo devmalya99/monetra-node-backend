@@ -1,6 +1,6 @@
 import { registry } from '../openAPIRegistry';
 import { z } from 'zod';
-import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema } from '../../schema/validation';
+import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema, updateExpenseSchema } from '../../schema/validation';
 
 export const registerExpensePaths = () => {
     // Add Expense
@@ -111,6 +111,46 @@ export const registerExpensePaths = () => {
             },
             404: {
                 description: 'Expense not found or not owned by user',
+            },
+        },
+    });
+
+    // Update Expense
+    registry.registerPath({
+        method: 'patch',
+        path: '/user/update-expense/{id}',
+        tags: ['Expense'],
+        summary: 'Update an existing expense by ID',
+        security: [{ bearerAuth: [] }],
+        request: {
+            params: z.object({
+                id: z.string().uuid()
+            }),
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            amount: z.coerce.number().positive().optional().openapi({ example: 50.00 }),
+                            date: z.string().datetime().optional().openapi({ example: "2024-05-21T10:00:00Z" }),
+                            category: z.string().min(1).optional().openapi({ example: "Dining" }),
+                            title: z.string().min(1).optional().openapi({ example: "Dinner at Restaurant" }),
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: 'Expense updated successfully',
+            },
+            400: {
+                description: 'Invalid input data',
+            },
+            401: {
+                description: 'Unauthorized',
+            },
+            404: {
+                description: 'Expense not found',
             },
         },
     });

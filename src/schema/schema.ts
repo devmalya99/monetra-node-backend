@@ -18,6 +18,7 @@ export const users = mysqlTable("users", {
     profileImgUrl: varchar("profile_img_url", { length: 500 }),
     bio: varchar("bio", { length: 1000 }),
     status: varchar("status", { length: 50 }).default("active"),
+    totalExpense: decimal("total_expense", { precision: 10, scale: 2 }).default("0.00"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });

@@ -139,9 +139,10 @@ export function registerPremiumPaths() {
                                     profileImgUrl: z.string().nullable(),
                                     bio: z.string().nullable(),
                                     status: z.string(),
+                                    totalExpense: z.string().nullable(),
                                     createdAt: z.string().nullable(),
                                     updatedAt: z.string().nullable(),
-                                }).openapi({ example: { id: "123", email: "user@example.com", fullName: null, phoneNumber: null, isVerified: false, mfaEnabled: false, lastLoginAt: null, role: "user", city: null, countryCode: null, currencyCode: "INR", timezone: null, profileImgUrl: null, bio: null, status: "active", createdAt: "2024-05-20T10:00Z", updatedAt: "2024-05-20T10:00Z" } }),
+                                }).openapi({ example: { id: "123", email: "user@example.com", fullName: null, phoneNumber: null, isVerified: false, mfaEnabled: false, lastLoginAt: null, role: "user", city: null, countryCode: null, currencyCode: "INR", timezone: null, profileImgUrl: null, bio: null, status: "active", totalExpense: "0.00", createdAt: "2024-05-20T10:00Z", updatedAt: "2024-05-20T10:00Z" } }),
                                 membership: z.object({
                                     id: z.string(),
                                     userId: z.string(),

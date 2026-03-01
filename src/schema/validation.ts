@@ -21,6 +21,14 @@ export const addExpenseSchema = z.object({
     title: z.string().min(1).openapi({ example: "Lunch at Restaurant" }),
 }).openapi("AddExpense");
 
+export const updateExpenseSchema = z.object({
+    id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
+    amount: z.coerce.number().positive().optional().openapi({ example: 45.50 }),
+    date: z.string().datetime().optional().openapi({ example: "2024-05-20T10:00:00Z" }),
+    category: z.string().min(1).optional().openapi({ example: "Food" }),
+    title: z.string().min(1).optional().openapi({ example: "Lunch at Restaurant" }),
+}).openapi("UpdateExpense");
+
 export const deleteExpenseSchema = z.object({
     id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
 }).openapi("DeleteExpense");

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { catchAsync } from "../utils/catchAsync";
-import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema } from "../schema/validation";
+import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema, updateExpenseSchema } from "../schema/validation";
 import { AppError } from "../utils/AppError";
 import * as expenseService from "../services/expense.service";
 import { logger } from "../utils/logger";
@@ -42,11 +42,13 @@ export const addExpense = catchAsync(async (req: Request, res: Response, next: N
 });
 
 export const getExpenses = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = (req as any).user.id;
-    const expenses = await expenseService.getExpensesByUser(userId);
+    const user = (req as any).user;
+    const expenses = await expenseService.getExpensesByUser(user.id);
 
-    const totalExpense = expenses.reduce((acc, curr) => acc + parseFloat(curr.amount as string), 0);
-    const allocatedBalance = await expenseService.getBalanceService(userId);
+    // Read natively directly from our optimized users DB table mapped object!
+    const totalExpense = Number(user.totalExpense) || 0;
+
+    const allocatedBalance = await expenseService.getBalanceService(user.id);
     const remainingBalance = allocatedBalance - totalExpense;
 
     res.status(200).json({
@@ -78,6 +80,37 @@ export const deleteExpense = catchAsync(async (req: Request, res: Response, next
     res.status(204).json({
         status: "success",
         data: null
+    });
+});
+
+export const updateExpense = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = (req as any).user.id;
+    // Validate params and body using Zod schema
+    const validation = updateExpenseSchema.safeParse({ id: req.params.id, ...req.body });
+
+    if (!validation.success) {
+        logger.error("Validation Error", validation.error);
+        return next(new AppError("Invalid update data format", 400));
+    }
+
+    const { id, amount, date, category, title } = validation.data;
+
+    // Construct updates object
+    const updates: any = {};
+    if (amount !== undefined) updates.amount = amount.toString();
+    if (date !== undefined) updates.date = new Date(date);
+    if (category !== undefined) updates.category = category;
+    if (title !== undefined) updates.title = title;
+
+    if (Object.keys(updates).length === 0) {
+        return next(new AppError("No fields to update", 400));
+    }
+
+    await expenseService.updateExpenseService(id, userId, updates);
+
+    res.status(200).json({
+        status: "success",
+        message: "Expense updated successfully"
     });
 });
 
