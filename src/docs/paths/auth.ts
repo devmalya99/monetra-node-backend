@@ -1,6 +1,6 @@
 import { registry } from '../openAPIRegistry';
 import { z } from 'zod';
-import { signupSchema, signinSchema } from '../../schema/validation';
+import { signupSchema, signinSchema, resetPasswordRequestSchema } from '../../schema/validation';
 
 export const registerAuthPaths = () => {
     registry.registerPath({
@@ -81,6 +81,41 @@ export const registerAuthPaths = () => {
             },
             401: {
                 description: 'Incorrect email or password',
+            },
+        },
+    });
+
+    registry.registerPath({
+        method: 'post',
+        path: '/user/request-password-reset',
+        tags: ['Auth'],
+        summary: 'Request a password reset email',
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: resetPasswordRequestSchema,
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: 'Reset request processed successfully',
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            status: z.string().openapi({ example: 'success' }),
+                            message: z.string().openapi({ example: 'If that email exists, a reset link has been sent.' }),
+                        }),
+                    },
+                },
+            },
+            400: {
+                description: 'Invalid email format',
+            },
+            500: {
+                description: 'Internal server error or Email provider error',
             },
         },
     });

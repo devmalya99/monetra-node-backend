@@ -40,6 +40,7 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Profile Management**: Extensible user profile structure.
   - **Session Persistence**: `/user/me` endpoint to hydrate frontend state on reload.
   - **Secure Logout**: `/user/logout` to clear HttpOnly cookies.
+  - **Password Recovery**: Implemented native integration with official `sib-api-v3-sdk` for secure reset-password email dispatching.
 - **Health Checks**: `/test` endpoint for uptime monitoring.
 - **Expense Management**:
   - **Add Expense**: `/user/add-expense` endpoint to securely add user expenses.

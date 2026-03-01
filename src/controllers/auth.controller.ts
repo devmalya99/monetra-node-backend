@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { users } from "../schema/schema";
-import { signupSchema, signinSchema } from "../schema/validation";
+import { signupSchema, signinSchema, resetPasswordRequestSchema } from "../schema/validation";
 import { AppError } from "../utils/AppError";
 import { catchAsync } from "../utils/catchAsync";
 import { logger } from "../utils/logger";
@@ -131,4 +131,86 @@ export const logout = (req: Request, res: Response) => {
     res.status(200).json({ status: "success" });
 };
 
+export const requestPasswordReset = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    logger.info("Password reset request received");
 
+    const validation = resetPasswordRequestSchema.safeParse(req.body);
+    if (!validation.success) {
+        return next(new AppError(validation.error.issues[0].message, 400));
+    }
+
+    const { email } = validation.data;
+
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+
+    // To prevent email enumeration attacks, always respond the same way
+    if (!user) {
+        logger.warn(`Password reset requested for non-existent email: ${email}`);
+        return res.status(200).json({ status: "success", message: "If that email exists, a reset link has been sent." });
+    }
+
+    const apiKey = process.env.BREVO_API_KEY;
+
+    if (!apiKey) {
+        logger.error("BREVO_API_KEY is not configured in environment variables.");
+        return next(new AppError("Email service is not configured properly.", 500));
+    }
+
+    // Creating the reset URL requested. 
+    // In production, generating a signed JWT token instead of raw ID is recommended!
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const resetUrl = `${frontendUrl}/reset-password/${user.id}`;
+
+    try {
+        const SibApiV3Sdk = require('sib-api-v3-sdk');
+        let defaultClient = SibApiV3Sdk.ApiClient.instance;
+
+        // Configure API key authorization: api-key
+        let apiKeyAuth = defaultClient.authentications['api-key'];
+        apiKeyAuth.apiKey = apiKey;
+
+        let tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
+
+        const senderEmail = process.env.BREVO_SENDER_EMAIL;
+        if (!senderEmail) {
+            logger.error("BREVO_SENDER_EMAIL is not configured in environment variables.");
+            return next(new AppError("Email service sender is not configured properly.", 500));
+        }
+
+        let sender = {
+            email: senderEmail,
+            name: "Monetra Security",
+        };
+
+        let receivers = [
+            {
+                email: user.email,
+            },
+        ];
+
+        let htmlContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <h2 style="color: #333;">Password Reset Request</h2>
+                <p style="color: #555;">Hello,</p>
+                <p style="color: #555;">We received a request to reset your password. Click the button below to set a new password. This link contains your secure ID.</p>
+                <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; margin: 20px 0; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px;">Reset Password</a>
+                <p style="color: #555;">Or click this link text directly: <br> <a href="${resetUrl}">${resetUrl}</a></p>
+                <p style="color: #555; margin-top: 30px; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+        `;
+
+        const data = await tranEmailApi.sendTransacEmail({
+            sender,
+            to: receivers,
+            subject: "Reset your Monetra Password",
+            htmlContent: htmlContent,
+        });
+
+        logger.success(`Password reset email sent for: ${email}. ID: ${data.messageId}`);
+    } catch (err: any) {
+        logger.error("Error communicating with Brevo SDK", err);
+        return next(new AppError("Failed to send reset email.", 500));
+    }
+
+    res.status(200).json({ status: "success", message: "If that email exists, a reset link has been sent." });
+});
