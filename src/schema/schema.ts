@@ -74,3 +74,11 @@ export const membershipPlans = mysqlTable("membership_plans", {
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
+
+export const forgotPasswordRequests = mysqlTable("forgot_password_requests", {
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    userId: varchar("user_id", { length: 36 }).notNull(), // FK to users
+    isActive: boolean("is_active").default(true),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
+});

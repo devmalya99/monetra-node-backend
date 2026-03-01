@@ -92,6 +92,13 @@ npm start
 12. **Get Premium Memberships**: `GET /premium/memberships` with Bearer token. Returns available memberships (pro/ultra/max).
 13. **Verify Premium Order**: `POST /premium/verify-order` with Bearer token.
     - Body: `{ id: "some-uuid" }`
+14. **Request Password Reset**: `POST /user/request-password-reset`
+    - Body: `{ email: "user@example.com" }`
+15. **Verify Password Reset**: `GET /user/reset-password/:id`
+    - This is the link users click in their email. It verifies the request ID and redirects to the frontend.
+16. **Reset Password**: `POST /user/reset-password/:id`
+    - Body: `{ password: "newpassword123" }`
+    - Finalizes the password change for the specific session ID.
 
 ---
 

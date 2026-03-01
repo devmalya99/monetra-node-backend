@@ -1,6 +1,6 @@
 import { registry } from '../openAPIRegistry';
 import { z } from 'zod';
-import { signupSchema, signinSchema } from '../../schema/validation';
+import { signupSchema, signinSchema, resetPasswordRequestSchema } from '../../schema/validation';
 
 export const registerAuthPaths = () => {
     registry.registerPath({
@@ -24,7 +24,7 @@ export const registerAuthPaths = () => {
                     'application/json': {
                         schema: z.object({
                             status: z.string().openapi({ example: 'success' }),
-                            token: z.string().describe('JWT access token'),
+                            token: z.string().openapi({ example: 'jwt_token' }),
                             data: z.object({
                                 user: z.object({
                                     id: z.string().uuid(),
@@ -35,12 +35,8 @@ export const registerAuthPaths = () => {
                     },
                 },
             },
-            400: {
-                description: 'Validation error or Email already exists',
-            },
-            500: {
-                description: 'Internal server error',
-            },
+            400: { description: 'Validation error or Email already exists' },
+            500: { description: 'Internal server error' },
         },
     });
 
@@ -65,23 +61,104 @@ export const registerAuthPaths = () => {
                     'application/json': {
                         schema: z.object({
                             status: z.string().openapi({ example: 'success' }),
-                            token: z.string().describe('JWT access token'),
+                            token: z.string().openapi({ example: 'jwt_token' }),
                             data: z.object({
                                 user: z.object({
                                     id: z.string().uuid(),
-                                    email: z.email(),
+                                    email: z.string().email(),
                                 }),
                             }),
                         }),
                     },
                 },
             },
-            400: {
-                description: 'Invalid input',
+            400: { description: 'Invalid input' },
+            401: { description: 'Incorrect email or password' },
+        },
+    });
+
+    registry.registerPath({
+        method: 'post',
+        path: '/user/request-password-reset',
+        tags: ['Auth'],
+        summary: 'Request a password reset email',
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: resetPasswordRequestSchema,
+                    },
+                },
             },
-            401: {
-                description: 'Incorrect email or password',
+        },
+        responses: {
+            200: {
+                description: 'Reset request processed successfully',
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            status: z.string().openapi({ example: 'success' }),
+                            message: z.string().openapi({ example: 'If that email exists, a reset link has been sent.' }),
+                        }),
+                    },
+                },
             },
+            400: { description: 'Invalid email format' },
+            500: { description: 'Internal server error or Email provider error' },
+        },
+    });
+
+    // Consolidated Reset Password Path
+    registry.registerPath({
+        method: 'get',
+        path: '/user/reset-password/{id}',
+        tags: ['Auth'],
+        summary: 'Verify request ID (from email link) and redirect to frontend',
+        request: {
+            params: z.object({
+                id: z.string().uuid(),
+            }),
+        },
+        responses: {
+            302: { description: 'Redirecting to frontend reset page' },
+            400: { description: 'Invalid or expired link' },
+        },
+    });
+
+    registry.registerPath({
+        method: 'post',
+        path: '/user/reset-password/{id}',
+        tags: ['Auth'],
+        summary: 'Reset user password using session Request ID',
+        request: {
+            params: z.object({
+                id: z.string().uuid(),
+            }),
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            password: z.string().min(6),
+                        }),
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: 'Password reset successfully',
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            status: z.string().openapi({ example: 'success' }),
+                            message: z.string().openapi({ example: 'Password has been successfully reset.' }),
+                        }),
+                    },
+                },
+            },
+            400: { description: 'Validation error or link expired' },
+            404: { description: 'User not found' },
+            500: { description: 'Internal server error' },
         },
     });
 };

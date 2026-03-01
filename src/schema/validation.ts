@@ -55,3 +55,12 @@ export const verifyPaymentSchema = z.object({
     razorpay_signature: z.string().openapi({ example: "abc123xyz" }),
     membership_id: z.string().openapi({ example: "pro_plan" }),
 }).openapi("VerifyPayment");
+
+export const resetPasswordRequestSchema = z.object({
+    email: z.string().email().openapi({ example: "user@example.com" }),
+}).openapi("ResetPasswordRequest");
+
+export const resetPasswordSchema = z.object({
+    id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
+    password: z.string().min(6).openapi({ example: "newpassword123" }),
+}).openapi("ResetPassword");
