@@ -1,6 +1,6 @@
 import { registry } from '../openAPIRegistry';
 import { z } from 'zod';
-import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema, updateExpenseSchema } from '../../schema/validation';
+import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema, updateExpenseSchema, suggestCategorySchema } from '../../schema/validation';
 
 export const registerExpensePaths = () => {
     // Add Expense
@@ -300,6 +300,48 @@ export const registerExpensePaths = () => {
             },
             401: {
                 description: 'Unauthorized - Missing or invalid token',
+            },
+        },
+    });
+
+    // Auto-Suggest Category
+    registry.registerPath({
+        method: 'post',
+        path: '/user/suggest-category',
+        tags: ['Expense'],
+        summary: 'Auto-suggest an expense category using Gemini AI based on the title',
+        security: [{ bearerAuth: [] }],
+        request: {
+            body: {
+                content: {
+                    'application/json': {
+                        schema: suggestCategorySchema,
+                    },
+                },
+            },
+        },
+        responses: {
+            200: {
+                description: 'Category accurately predicted',
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            status: z.string().openapi({ example: 'success' }),
+                            data: z.object({
+                                category: z.string().openapi({ example: 'Food' })
+                            })
+                        }),
+                    },
+                },
+            },
+            400: {
+                description: 'Validation error (Title required)',
+            },
+            401: {
+                description: 'Unauthorized',
+            },
+            500: {
+                description: 'Gemini API not configured or external error',
             },
         },
     });
