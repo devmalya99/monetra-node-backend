@@ -17,6 +17,7 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Type Inference**: Automatic type inference for database queries, eliminating the need for manual interface definitions.
 - **UUID Primary Keys**: Switched from sequential integers to random UUIDs for secure and unpredictable user IDs.
 - **Connection Pooling**: Efficient database connection management for high concurrency.
+- **ACID Transactions System-wide**: `db.transaction()` wrapper implemented unconditionally for all mutating operations (e.g., Signup, Add Expense, Premium Payment resolution), preventing partial data failures across both single and multi-query requests.
 
 ## 🔐 Security & Authentication
 - **JWT Authentication**: Secure stateless authentication using JSON Web Tokens.
@@ -47,7 +48,7 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Get Top Categories**: `/user/top-categories` to fetch top spending categories grouped dynamically with database aggregations.
   - **Search Expenses**: `/user/search-expenses` to search expenses flexibly by name, title, or category.
   - **Get Expenses**: `/user/my-expenses` to retrieve all expenses for the authenticated user (date sorted) along with a calculated total expense, allocated balance, and remaining balance.
-  - **Delete Expense**: `/user/delete-expense/:id` with ownership verification before deletion.
+  - **Delete Expense**: `/user/delete-expense/:id` with ownership verification before deletion and strict transaction-based commit/rollback database safety.
   - **Data Validation**: Strict Zod validation for expense amounts, balances, dates, and categories.
   - **Secure User Association**: Expenses are automatically linked to authenticated users.
 - **Premium Memberships**:
