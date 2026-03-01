@@ -39,6 +39,7 @@ src/
 - **Database**: MySQL (hosted on Aiven)
 - **ORM**: Drizzle ORM (for type-safe SQL queries)
 - **Validation**: Zod (v4 - uses `.issues` instead of `.errors`)
+- **Email Service**: Brevo (formerly Sendinblue) with official Node SDK
 - **Authentication**: JWT (JSON Web Tokens) with Cookies
 - **Documentation**: Swagger UI (Automated via Zod-to-OpenAPI)
 - **Logging**: Custom logger with colors

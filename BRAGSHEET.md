@@ -8,7 +8,13 @@ This document tracks the key features and technical accomplishments achieved dur
 - **JWT-Based Auth**: Secure implementation using JSON Web Tokens.
 - **Cookie Storage**: Tokens are stored in `httpOnly` cookies to prevent XSS attacks.
 - **Password Security**: Passwords are hashed using `bcryptjs` before storage.
+- **Password Recovery**: Integrated Brevo transactional email system for secure password reset workflows.
 - **Validation**: Strict input validation using `Zod` schemas for email and password strength.
+
+### 2. **Transactional Email System (Brevo)**
+- **Brevo SDK Integration**: Native implementation using `sib-api-v3-sdk` for high-reliability transactional emails.
+- **Dynamic Link Generation**: Automatically generated secure reset-password links optimized for different environments (local/ngrok/production).
+- **Security First**: Implemented email obfuscation and status consistency to prevent user enumeration attacks.
 
 ### 2. **Modern Database Layer**
 - **Drizzle ORM Integration**: Utilized Drizzle for type-safe, performant database interactions.

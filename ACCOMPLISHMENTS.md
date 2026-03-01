@@ -40,7 +40,7 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Profile Management**: Extensible user profile structure.
   - **Session Persistence**: `/user/me` endpoint to hydrate frontend state on reload.
   - **Secure Logout**: `/user/logout` to clear HttpOnly cookies.
-  - **Password Recovery**: Implemented native integration with official `sib-api-v3-sdk` for secure reset-password email dispatching.
+  - **Secure Password Recovery (Brevo)**: Engineered a production-ready password reset ecosystem utilizing the **Brevo (formerly Sendinblue) SDK**. Featuring fully dynamic environment-aware reset URLs, anti-enumeration security patterns, and premium styled HTML email templates.
 - **Health Checks**: `/test` endpoint for uptime monitoring.
 - **Expense Management**:
   - **Add Expense**: `/user/add-expense` endpoint to securely add user expenses.
