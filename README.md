@@ -102,7 +102,9 @@ The API documentation is auto-generated using `zod-to-openapi` directly from the
 - `POST /user/signin`: Log in an existing user.
 - `GET /user/me`: Get current user details (session check).
 - `POST /user/logout`: Log out user and clear cookies.
-- `POST /user/request-password-reset`: Request an email with a link to reset the user's password.
+- `POST /user/request-password-reset`: Initiates a reset session, stores it in the DB, and sends a Brevo transactional email.
+- `GET /user/reset-password/:id`: Validates the `requestId` and redirects valid users to the frontend reset form.
+- `POST /user/reset-password/:id`: Finalizes the password change, hashes the new password, and deactivates the session.
 - `POST /user/add-expense`: Create a new expense record (requires auth).
 - `GET /user/my-expenses`: Get all expenses for the authenticated user, plus total, allocated, and remaining balance.
 - `DELETE /user/delete-expense/:id`: Delete a specific expense by ID (requires auth) using ACID compliant transactions.

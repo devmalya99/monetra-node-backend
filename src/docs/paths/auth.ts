@@ -24,7 +24,7 @@ export const registerAuthPaths = () => {
                     'application/json': {
                         schema: z.object({
                             status: z.string().openapi({ example: 'success' }),
-                            token: z.string().describe('JWT access token'),
+                            token: z.string().openapi({ example: 'jwt_token' }),
                             data: z.object({
                                 user: z.object({
                                     id: z.string().uuid(),
@@ -35,12 +35,8 @@ export const registerAuthPaths = () => {
                     },
                 },
             },
-            400: {
-                description: 'Validation error or Email already exists',
-            },
-            500: {
-                description: 'Internal server error',
-            },
+            400: { description: 'Validation error or Email already exists' },
+            500: { description: 'Internal server error' },
         },
     });
 
@@ -65,23 +61,19 @@ export const registerAuthPaths = () => {
                     'application/json': {
                         schema: z.object({
                             status: z.string().openapi({ example: 'success' }),
-                            token: z.string().describe('JWT access token'),
+                            token: z.string().openapi({ example: 'jwt_token' }),
                             data: z.object({
                                 user: z.object({
                                     id: z.string().uuid(),
-                                    email: z.email(),
+                                    email: z.string().email(),
                                 }),
                             }),
                         }),
                     },
                 },
             },
-            400: {
-                description: 'Invalid input',
-            },
-            401: {
-                description: 'Incorrect email or password',
-            },
+            400: { description: 'Invalid input' },
+            401: { description: 'Incorrect email or password' },
         },
     });
 
@@ -111,12 +103,62 @@ export const registerAuthPaths = () => {
                     },
                 },
             },
-            400: {
-                description: 'Invalid email format',
+            400: { description: 'Invalid email format' },
+            500: { description: 'Internal server error or Email provider error' },
+        },
+    });
+
+    // Consolidated Reset Password Path
+    registry.registerPath({
+        method: 'get',
+        path: '/user/reset-password/{id}',
+        tags: ['Auth'],
+        summary: 'Verify request ID (from email link) and redirect to frontend',
+        request: {
+            params: z.object({
+                id: z.string().uuid(),
+            }),
+        },
+        responses: {
+            302: { description: 'Redirecting to frontend reset page' },
+            400: { description: 'Invalid or expired link' },
+        },
+    });
+
+    registry.registerPath({
+        method: 'post',
+        path: '/user/reset-password/{id}',
+        tags: ['Auth'],
+        summary: 'Reset user password using session Request ID',
+        request: {
+            params: z.object({
+                id: z.string().uuid(),
+            }),
+            body: {
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            password: z.string().min(6),
+                        }),
+                    },
+                },
             },
-            500: {
-                description: 'Internal server error or Email provider error',
+        },
+        responses: {
+            200: {
+                description: 'Password reset successfully',
+                content: {
+                    'application/json': {
+                        schema: z.object({
+                            status: z.string().openapi({ example: 'success' }),
+                            message: z.string().openapi({ example: 'Password has been successfully reset.' }),
+                        }),
+                    },
+                },
             },
+            400: { description: 'Validation error or link expired' },
+            404: { description: 'User not found' },
+            500: { description: 'Internal server error' },
         },
     });
 };

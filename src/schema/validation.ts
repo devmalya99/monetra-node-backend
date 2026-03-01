@@ -59,3 +59,8 @@ export const verifyPaymentSchema = z.object({
 export const resetPasswordRequestSchema = z.object({
     email: z.string().email().openapi({ example: "user@example.com" }),
 }).openapi("ResetPasswordRequest");
+
+export const resetPasswordSchema = z.object({
+    id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
+    password: z.string().min(6).openapi({ example: "newpassword123" }),
+}).openapi("ResetPassword");

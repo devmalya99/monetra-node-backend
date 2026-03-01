@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import { users } from "../schema/schema";
-import { signupSchema, signinSchema, resetPasswordRequestSchema } from "../schema/validation";
+import { users, forgotPasswordRequests } from "../schema/schema";
+import { signupSchema, signinSchema, resetPasswordRequestSchema, resetPasswordSchema } from "../schema/validation";
 import { AppError } from "../utils/AppError";
 import { catchAsync } from "../utils/catchAsync";
 import { logger } from "../utils/logger";
@@ -156,10 +156,17 @@ export const requestPasswordReset = catchAsync(async (req: Request, res: Respons
         return next(new AppError("Email service is not configured properly.", 500));
     }
 
-    // Creating the reset URL requested. 
-    // In production, generating a signed JWT token instead of raw ID is recommended!
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const resetUrl = `${frontendUrl}/reset-password/${user.id}`;
+    // Creating a record in forgot_password_requests table
+    const requestId = randomUUID();
+    await db.insert(forgotPasswordRequests).values({
+        id: requestId,
+        userId: user.id,
+        isActive: true,
+    });
+
+    // Creating the reset URL which calls the backend's GET verification endpoint first
+    const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 9100}`;
+    const resetUrl = `${backendUrl}/user/reset-password/${requestId}`;
 
     try {
         const SibApiV3Sdk = require('sib-api-v3-sdk');
@@ -206,11 +213,125 @@ export const requestPasswordReset = catchAsync(async (req: Request, res: Respons
             htmlContent: htmlContent,
         });
 
-        logger.success(`Password reset email sent for: ${email}. ID: ${data.messageId}`);
+        logger.success(`Password reset email sent for: ${email}. Request ID: ${requestId}`);
     } catch (err: any) {
         logger.error("Error communicating with Brevo SDK", err);
         return next(new AppError("Failed to send reset email.", 500));
     }
 
     res.status(200).json({ status: "success", message: "If that email exists, a reset link has been sent." });
+});
+
+export const verifyResetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    if (!id) {
+        logger.warn(`Invalid or expired password reset verification for Request ID: ${id}`);
+        return res.status(400).send(`
+            <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                <h2 style="color: #dc3545;">Invalid or Expired Link</h2>
+                <p>This password reset link is no longer valid. Please request a new one.</p>
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/forgot-password" style="color: #007bff; text-decoration: none;">Request New Link</a>
+            </div>
+        `);
+    }
+
+    const [request] = await db
+        .select()
+        .from(forgotPasswordRequests)
+        .where(eq(forgotPasswordRequests.id, id as string));
+
+    if (!request || !request.isActive) {
+        logger.warn(`Invalid or expired password reset verification for Request ID: ${id}`);
+        return res.status(400).send(`
+            <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                <h2 style="color: #dc3545;">Invalid or Expired Link</h2>
+                <p>This password reset link is no longer valid. Please request a new one.</p>
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/forgot-password" style="color: #007bff; text-decoration: none;">Request New Link</a>
+            </div>
+        `);
+    }
+
+    // Check expiration (15 minutes)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    if (request.createdAt && request.createdAt < fifteenMinutesAgo) {
+        logger.warn(`Password reset link expired for Request ID: ${id}`);
+        return res.status(400).send(`
+            <div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+                <h2 style="color: #dc3545;">Link Expired</h2>
+                <p>This password reset link has expired (15 minute limit). Please request a new one.</p>
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/forgot-password" style="color: #007bff; text-decoration: none;">Request New Link</a>
+            </div>
+        `);
+    }
+
+    // Redirect to the frontend password reset page
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${id}`);
+});
+
+export const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    logger.info("Reset password initialization...");
+
+    const requestId = req.params.id as string;
+    const validation = resetPasswordSchema.safeParse({ id: requestId, ...req.body });
+
+    if (!validation.success) {
+        return next(new AppError(validation.error.issues[0].message, 400));
+    }
+
+    const { password } = validation.data;
+
+    // 1. Find the request in forgot_password_requests
+    const [request] = await db
+        .select()
+        .from(forgotPasswordRequests)
+        .where(eq(forgotPasswordRequests.id, requestId));
+
+    if (!request || !request.isActive) {
+        logger.warn(`Invalid or expired password reset attempt for Request ID: ${requestId}`);
+        return next(new AppError("The reset link is invalid or has already been used.", 400));
+    }
+
+    // Check expiration (15 minutes) - important even for the POST submission
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    if (request.createdAt && request.createdAt < fifteenMinutesAgo) {
+        logger.warn(`Password reset submission expired for Request ID: ${requestId}`);
+        return next(new AppError("This reset sessions has expired (15 minute limit).", 400));
+    }
+
+    // 2. Find the associated user
+    const [user] = await db.select().from(users).where(eq(users.id, request.userId));
+    if (!user) {
+        logger.error(`Reset Password failed: Associated User not found for Request ID ${requestId}.`);
+        return next(new AppError("User not found.", 404));
+    }
+
+    // 3. Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    try {
+        await db.transaction(async (tx) => {
+            // Update user password
+            await tx
+                .update(users)
+                .set({ password: hashedPassword })
+                .where(eq(users.id, user.id));
+
+            // Deactivate the request
+            await tx
+                .update(forgotPasswordRequests)
+                .set({ isActive: false })
+                .where(eq(forgotPasswordRequests.id, requestId));
+        });
+
+        logger.success(`Password updated successfully for account: ${user.email} using Request ID: ${requestId}`);
+
+        res.status(200).json({
+            status: "success",
+            message: "Password has been successfully reset. You can now log in with your new password.",
+        });
+    } catch (err: any) {
+        logger.error("Password reset database error", err);
+        return next(new AppError("An error occurred while resetting your password. Please try again.", 500));
+    }
 });
