@@ -21,6 +21,10 @@ export const addExpenseSchema = z.object({
     title: z.string().min(1).openapi({ example: "Lunch at Restaurant" }),
 }).openapi("AddExpense");
 
+export const suggestCategorySchema = z.object({
+    title: z.string().min(2).openapi({ example: "Starbucks Coffee" }),
+}).openapi("SuggestCategory");
+
 export const updateExpenseSchema = z.object({
     id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
     amount: z.coerce.number().positive().optional().openapi({ example: 45.50 }),

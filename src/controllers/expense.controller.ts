@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { catchAsync } from "../utils/catchAsync";
-import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema, updateExpenseSchema } from "../schema/validation";
+import { addExpenseSchema, deleteExpenseSchema, updateBalanceSchema, searchExpenseSchema, updateExpenseSchema, suggestCategorySchema } from "../schema/validation";
 import { AppError } from "../utils/AppError";
 import * as expenseService from "../services/expense.service";
 import { logger } from "../utils/logger";
@@ -191,4 +191,56 @@ export const searchExpenses = catchAsync(async (req: Request, res: Response, nex
             searchResults
         }
     });
+});
+
+export const suggestCategory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const validation = suggestCategorySchema.safeParse(req.body);
+
+    if (!validation.success) {
+        logger.error("Validation Error", validation.error);
+        return next(new AppError(validation.error.issues[0].message, 400));
+    }
+
+    const { title } = validation.data;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+        return next(new AppError("Gemini API key is not configured.", 500));
+    }
+
+    try {
+        const prompt = `Classify the following expense title into a single-word, highly accurate category. Choose from a broad list such as: Food, Travel, Utilities, Entertainment, Sports, Fitness, Education, Shopping, Rent, Salary, Health, Electronics, Subscriptions, Groceries, or come up with an even better single word. Return ONLY the category word and nothing else without punctuation. Expense Title: "${title}"`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Gemini API request failed');
+        }
+
+        const responseData = await response.json();
+        let category = responseData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "Miscellaneous";
+
+        // Strip any extra quotes or punctuation
+        category = category.replace(/[^a-zA-Z]/g, '');
+
+        if (!category) {
+            category = "Miscellaneous";
+        }
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                category
+            }
+        });
+    } catch (error) {
+        logger.error("Error auto-suggesting category", error);
+        return next(new AppError("Failed to auto-suggest category", 500));
+    }
 });
