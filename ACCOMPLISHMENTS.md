@@ -52,7 +52,7 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Get Monthly Balance**: `/user/monthly-balance` to retrieve just the current monthly allocated balance.
   - **Get Top Categories**: `/user/top-categories` to fetch top spending categories grouped dynamically with database aggregations.
   - **Search Expenses**: `/user/search-expenses` to search expenses flexibly by name, title, or category.
-  - **Get Expenses**: `/user/my-expenses` to retrieve all expenses for the authenticated user (date sorted) along with total, allocated, and remaining balances.
+  - **Get Expenses**: `/user/my-expenses` to retrieve all expenses for the authenticated user (date sorted) along with total, allocated, and remaining balances. Optimized for frontend client-side pagination with dynamic persistence.
   - **Delete Expense**: `/user/delete-expense/:id` with ownership verification and strict transaction-based database safety.
 - **Premium Memberships**:
   - **Auto-Seeding**: Automatically seeds premium membership tiers (Pro, Ultra, Max) on server load.
