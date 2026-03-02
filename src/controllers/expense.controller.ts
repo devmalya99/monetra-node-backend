@@ -13,7 +13,7 @@ export const addExpense = catchAsync(async (req: Request, res: Response, next: N
         return next(new AppError(validation.error.issues[0].message, 400));
     }
 
-    const { amount, date, category, title } = validation.data;
+    const { amount, date, category, title, notes } = validation.data;
     const userId = (req as any).user.id;
     logger.info(`💸 Adding new expense for user: ${userId}`);
 
@@ -24,6 +24,7 @@ export const addExpense = catchAsync(async (req: Request, res: Response, next: N
         date: new Date(date),
         category,
         title,
+        notes,
         userId
     } as any);
 
@@ -93,7 +94,7 @@ export const updateExpense = catchAsync(async (req: Request, res: Response, next
         return next(new AppError("Invalid update data format", 400));
     }
 
-    const { id, amount, date, category, title } = validation.data;
+    const { id, amount, date, category, title, notes } = validation.data;
 
     // Construct updates object
     const updates: any = {};
@@ -101,6 +102,7 @@ export const updateExpense = catchAsync(async (req: Request, res: Response, next
     if (date !== undefined) updates.date = new Date(date);
     if (category !== undefined) updates.category = category;
     if (title !== undefined) updates.title = title;
+    if (notes !== undefined) updates.notes = notes;
 
     if (Object.keys(updates).length === 0) {
         return next(new AppError("No fields to update", 400));

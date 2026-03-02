@@ -30,6 +30,7 @@ export const expenses = mysqlTable("expenses", {
     date: timestamp("date").notNull(),
     category: varchar("category", { length: 255 }).notNull(),
     title: varchar("title", { length: 255 }).notNull(),
+    notes: varchar("notes", { length: 1000 }),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });

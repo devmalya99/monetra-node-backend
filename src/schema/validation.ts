@@ -19,6 +19,7 @@ export const addExpenseSchema = z.object({
     date: z.string().datetime().openapi({ example: "2024-05-20T10:00:00Z" }),
     category: z.string().min(1).openapi({ example: "Food" }),
     title: z.string().min(1).openapi({ example: "Lunch at Restaurant" }),
+    notes: z.string().max(1000).optional().openapi({ example: "Business lunch with client" }),
 }).openapi("AddExpense");
 
 export const suggestCategorySchema = z.object({
@@ -31,6 +32,7 @@ export const updateExpenseSchema = z.object({
     date: z.string().datetime().optional().openapi({ example: "2024-05-20T10:00:00Z" }),
     category: z.string().min(1).optional().openapi({ example: "Food" }),
     title: z.string().min(1).optional().openapi({ example: "Lunch at Restaurant" }),
+    notes: z.string().max(1000).optional().openapi({ example: "Updated business lunch" }),
 }).openapi("UpdateExpense");
 
 export const deleteExpenseSchema = z.object({

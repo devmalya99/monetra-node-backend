@@ -10,7 +10,7 @@ Welcome to the **Monetra Backend**, a robust and strictly typed Node.js applicat
 - **[🏆 Project Accomplishments](./ACCOMPLISHMENTS.md)**: Key features and technical highlights.
 - **[🔥 API Documentation](http://localhost:9100/api-docs)**: Interactive Swagger UI.
 
-Backend service for the Monetra Expense Tracker application, built with Node.js, Express, and MySQL (via Drizzle ORM).
+Backend service for the Monetra Expense Tracker application, built with Node.js, Express, and MySQL (via Drizzle ORM). Includes support for expense notes.
 
 ## Architecture
 

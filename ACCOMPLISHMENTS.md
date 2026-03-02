@@ -59,6 +59,7 @@ This document outlines the key technical achievements, architectural decisions, 
   - **Dynamic Tier Verification**: Securely verifies incoming frontend requests matching database membership IDs.
   - **Payment Gateway (Razorpay/Cashfree)**: Architected a robust, end-to-end payment ecosystem with cryptographic signature verification and automated webhooks.
   - **Transaction State Management**: Designed a resilient dual-table system using `orders` and `premium_membership_data` to guarantee zero discrepancies and eliminate payment race conditions.
+  - **Expense Notes**: Expanded the `expenses` schema to include a `notes` column, allowing users to add detailed context to individual expenses securely and permanently mapping to their transactions.
 
 ---
 *This file is automatically updated to reflect the latest features and accomplishments of the Monetra Backend project.*
