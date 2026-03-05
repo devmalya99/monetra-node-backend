@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
-import helmet from "helmet";
-import morgan from "morgan";
+import { configureSecurityHeaders, configureLogger } from "./config/middleware";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import { specs } from "./config/swagger";
@@ -12,16 +11,13 @@ import { AppError } from "./utils/AppError";
 const app = express();
 
 // 1) Global Middlewares
-app.use(helmet()); // Set security HTTP headers
+app.use(configureSecurityHeaders()); // Set secure security HTTP headers
+app.use(configureLogger()); // Set secure and structured logging
 
 app.use(cors({
     origin: true, // Dynamically mirror the request origin to bypass strict matching issues
     credentials: true,
 }));
-
-// if (process.env.NODE_ENV === "development") {
-//     app.use(morgan("dev")); // Logging
-// }
 
 app.use(express.json({
     limit: "10kb",

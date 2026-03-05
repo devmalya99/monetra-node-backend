@@ -150,3 +150,7 @@ Cashfree Integration Added: `cashfree-pg` singleton initialized. `/premium/verif
   - [x] Statically defined `MEMBERSHIP_PLANS` constants natively on the backend for clean separation of master data vs active user bindings.
   - [x] Configured `PGCreateOrder` callback to successfully construct and insert an empty "pending" row into `orders` initialized by the `payment_session_id`.
   - [x] Optimized `/user/my-expenses` response handling for frontend dynamic client-side pagination (Step 6.9).
+### Step 6.10: Secure Logging & Security Headers
+  - [x] Centralized middleware initialization.
+  - [x] Configured `Helmet` to serve optimal security HTTP headers.
+  - [x] Added `Morgan` integration bound to our custom colorized `logger.ts` for automated security logging in dev and structured logging in prod.

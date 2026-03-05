@@ -25,7 +25,7 @@ This document outlines the key technical achievements, architectural decisions, 
 - **Password Hashing**: User passwords are securely hashed using `bcryptjs` before storage.
 - **Input Validation**: Comprehensive request validation using **Zod v4** schemas to ensure data integrity and prevent injection attacks.
 - **Environment Configuration**: Sensitive data (API keys, DB URLs) managed via `.env` files, strictly excluded from version control.
-- **CORS & Helmet**: Security headers and Cross-Origin Resource Sharing configuration to protect the API.
+- **Secure Middleware Config**: CORS, Helmet (Security Headers), and Morgan (Structured Logging) configurations are extracted into a dedicated `src/config/middleware.ts` for cleaner core setup.
 
 ## 🛠️ Developer Experience (DX)
 - **Automated API Documentation**: Switched from manual JSDoc to `zod-to-openapi` for automated, Type-Safe Swagger UI generation covering Key Auth & Expense flows.

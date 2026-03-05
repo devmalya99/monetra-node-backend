@@ -20,7 +20,7 @@ This project follows a modular, layered architecture to ensure scalability and m
 
 ```
 src/
-├── config/         # Configuration files (Swagger, env vars validation)
+├── config/         # Configuration files (Swagger, env vars validation, middleware plugins)
 ├── controllers/    # Request handlers (business logic entry points)
 ├── db/             # Database connection and client setup
 ├── middlewares/    # Custom Express middlewares (error handling, auth)
